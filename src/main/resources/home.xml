@@ -1,0 +1,13 @@
+
+<homes>
+    <home>
+        <type>хрущовка</type>
+        <address>г такой-то адрес такой-то</address>
+        <age>25</age>
+    </home>
+    <home>
+        <type>дом</type>
+        <address>город такой-то адрес такой-то</address>
+        <age>45</age>
+    </home>
+</homes>

@@ -1,0 +1,12 @@
+<pets>
+    <pet>
+        <name>Торт</name>
+        <typePet>собака</typePet>
+        <age>7</age>
+    </pet>
+    <pet>
+        <name>Багира</name>
+        <typePet>кошка</typePet>
+        <age>10</age>
+    </pet>
+</pets>

@@ -1,0 +1,32 @@
+<!--<contacts>-->
+<!--    <contact type="друг">-->
+<!--        <firstName>Василий</firstName>-->
+<!--        <lastName>Курочкин</lastName>-->
+<!--        <email>vas@pisem.net</email>-->
+<!--    </contact>-->
+<!--    <contact type="коллега">-->
+<!--        <firstName>Георгий</firstName>-->
+<!--        <lastName>Папанов</lastName>-->
+<!--        <email>geogr@gmail.com</email>-->
+<!--    </contact>-->
+<!--    <contact type="однокурсник">-->
+<!--        <firstName>Семен</firstName>-->
+<!--        <lastName>Баринов</lastName>-->
+<!--        <email>barinov@yandex.ru</email>-->
+<!--    </contact>-->
+<!--</contacts>-->
+
+<humans>
+    <human>
+        <name>Семен</name>
+        <secondName>Александрович</secondName>
+        <surname>Баринов</surname>
+        <age>25</age>
+    </human>
+    <human>
+        <name>Георгий</name>
+        <secondName>Мухметович</secondName>
+        <surname>Папанов</surname>
+        <age>45</age>
+    </human>
+</humans>
