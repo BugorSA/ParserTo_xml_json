@@ -1,9 +1,15 @@
+
+
 public class Human {
     private String name;
     private int age;
     private String secondName;
+
     private String surname;
+
     public boolean isEmpty;
+
+
 
     public Human(String name, String secondName, String surname, int age) {
         this.name = name;

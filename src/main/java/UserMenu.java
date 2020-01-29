@@ -11,6 +11,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.Scanner;
 
@@ -21,15 +22,15 @@ public class UserMenu {
     private ArrayList<Home> homeArrayList;
 
     public UserMenu() {
-        humanArrayList = new ArrayList<Human>();
+        humanArrayList = new ArrayList<>();
         humanArrayList.add(new Human("Василий", "Иванович", "Коварцев", 50));
         humanArrayList.add(new Human("Владимир", "Вячеславович", "Коваленко", 20));
         humanArrayList.add(new Human("Юрий", "Михайлович", "Заболотнов", 70));
-        petArrayList = new ArrayList<Pet>();
+        petArrayList = new ArrayList<>();
         petArrayList.add(new Pet("Вася", "кот", 2));
         petArrayList.add(new Pet("Машка", "кошка", 1));
         petArrayList.add(new Pet("Шарик", "собака", 3));
-        homeArrayList = new ArrayList<Home>();
+        homeArrayList = new ArrayList<>();
         homeArrayList.add(new Home("дача", "Старосемейкино,ул.Советская 5", 6));
         homeArrayList.add(new Home("многоэтажка", "Самара,Московское ш-се 34Б", 20));
         homeArrayList.add(new Home("малоэтажка", "Санкт-Петербург,ул. Садовая 127", 250));
@@ -37,9 +38,9 @@ public class UserMenu {
 
     //перегруз на случай надобности в пустых данных
     public UserMenu(int a) {
-        humanArrayList = new ArrayList<Human>();
-        petArrayList = new ArrayList<Pet>();
-        homeArrayList = new ArrayList<Home>();
+        humanArrayList = new ArrayList<>();
+        petArrayList = new ArrayList<>();
+        homeArrayList = new ArrayList<>();
     }
 
     public void StartMenu() throws IOException {
@@ -245,7 +246,7 @@ public class UserMenu {
     }
 
     //изменить здесь путь к файлу в случае изменения местоположения
-    public void AddTable() throws FileNotFoundException {
+    public void AddTable() {
         Scanner in = new Scanner(System.in);
         while (true) {
             System.out.println("0-добавить человека");
@@ -298,18 +299,12 @@ public class UserMenu {
                     in.reset();
                     String s = in.next();
                     fileWay += s;
-                    if (getExtensionByStringHandling(fileWay).isPresent()) {
-                        String line = getExtensionByStringHandling(fileWay).get();
-                        if (line.equals("json")) {
-                            ParseJson(fileWay);
-                            break;
-                        }
-                        if (line.equals("xml")) {
-                            ParserXml(fileWay);
-                            break;
-                        }
-                    } else System.out.println("Файл не распознан");
-
+                    MyFParser myFParser = new MyFParser();
+                    MyParser myParser = myFParser.ParseTo(fileWay);
+                    myParser.Parse();
+                    humanArrayList.addAll(myParser.GetHuman());
+                    homeArrayList.addAll(myParser.GetHome());
+                    petArrayList.addAll(myParser.GetPet());
                     break;
                 default:
                     return;
@@ -317,158 +312,162 @@ public class UserMenu {
         }
     }
 
-    //нехороший вариант
-    private void ParseJson(String fileWay) throws FileNotFoundException {
-        FileReader fr = new FileReader(fileWay);
-        Scanner scan = new Scanner(fr);
-        String jsonString = "";
-        while (scan.hasNextLine()) {
-            jsonString = jsonString + (scan.nextLine());
-        }
-        //fr.close();
-        Gson d = new Gson();
-        if (jsonString.contains("surname")){
-            Human human = d.fromJson(jsonString, Human.class);
-            humanArrayList.add(human);
-        }
-        if (jsonString.contains("address")) {
-            Home home = d.fromJson(jsonString, Home.class);
-            homeArrayList.add(home);
-        }
-        if (jsonString.contains("typePet")) {
-            Pet pet = d.fromJson(jsonString, Pet.class);
-            petArrayList.add(pet);
-        }
-    }
-
-    //заменить на private при потере необход
-    public void ParserXml(String wayfile) {
-        try {
-            int count = 0;
-            // Создается построитель документа
-            DocumentBuilder documentBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-            // Создается дерево DOM документа из файла
-            Document document = documentBuilder.parse(wayfile);
-
-            // Получаем корневой элемент
-            Node root = document.getDocumentElement();
-
-            //System.out.println("List of books:");
-            //System.out.println();
-            // Просматриваем все подэлементы корневого - т.е. непоред данные
-            NodeList books = root.getChildNodes();
-            for (int i = 0; i < books.getLength(); i++) {
-                Node book = books.item(i);
-                // Если нода не текст, то это данные - заходим внутрь
-                if (book.getNodeType() != Node.TEXT_NODE) {
-                    NodeList bookProps = book.getChildNodes();
-                    String str = book.getNodeName();
-                    switch (str) {
-                        case "human":
-                            String name = "";
-                            String secondName = "";
-                            String surname ="";
-                            int age = 0;
-                            for (int j = 0; j < bookProps.getLength(); j++) {
-                                Node bookProp = bookProps.item(j);
-                                // Если нода не текст, то это один из параметров данных - заполняем
-                                if (bookProp.getNodeType() != Node.TEXT_NODE) {
-                                    switch (bookProp.getNodeName()){
-                                        case "name":
-                                            name = bookProp.getChildNodes().item(0).getTextContent();
-                                            break;
-                                        case "surname":
-                                            surname = bookProp.getChildNodes().item(0).getTextContent();
-                                            break;
-                                        case "secondName":
-                                            secondName = bookProp.getChildNodes().item(0).getTextContent();
-                                            break;
-                                        case "age":
-                                            age = Integer.parseInt(bookProp.getChildNodes().item(0).getTextContent());
-                                            break;
-                                        default:
-                                            System.out.println(bookProp.getNodeName() + ":" + bookProp.getChildNodes().item(0).getTextContent());
-                                    }
-
-                                }
-                            }
-                            humanArrayList.add(new Human(name,secondName,surname,age));
-                            break;
-                        case "pet":
-                            String name1 = "";
-                            String typePet = "";
-                            int age1 = 0;
-                            for (int j = 0; j < bookProps.getLength(); j++) {
-                                Node bookProp = bookProps.item(j);
-                                // Если нода не текст, то это один из параметров данных - заполняем
-                                if (bookProp.getNodeType() != Node.TEXT_NODE) {
-                                    switch (bookProp.getNodeName()){
-                                        case "name":
-                                            name1 = bookProp.getChildNodes().item(0).getTextContent();
-                                            break;
-                                        case "typePet":
-                                            typePet = bookProp.getChildNodes().item(0).getTextContent();
-                                            break;
-                                        case "age":
-                                            age1 = Integer.parseInt(bookProp.getChildNodes().item(0).getTextContent());
-                                            break;
-                                        default:
-                                            System.out.println(bookProp.getNodeName() + ":" + bookProp.getChildNodes().item(0).getTextContent());
-                                    }
-
-                                }
-                            }
-                            petArrayList.add(new Pet(name1,typePet,age1));
-                            break;
-                        case "home":
-                            String address = "";
-                            String type = "";
-                            int age2 = 0;
-                            for (int j = 0; j < bookProps.getLength(); j++) {
-                                Node bookProp = bookProps.item(j);
-                                // Если нода не текст, то это один из параметров данных - заполняем
-                                if (bookProp.getNodeType() != Node.TEXT_NODE) {
-                                    switch (bookProp.getNodeName()){
-                                        case "address":
-                                            address = bookProp.getChildNodes().item(0).getTextContent();
-                                            break;
-                                        case "type":
-                                            type = bookProp.getChildNodes().item(0).getTextContent();
-                                            break;
-                                        case "age":
-                                            age2 = Integer.parseInt(bookProp.getChildNodes().item(0).getTextContent());
-                                            break;
-                                        default:
-                                            System.out.println(bookProp.getNodeName() + ":" + bookProp.getChildNodes().item(0).getTextContent());
-                                    }
-
-                                }
-                            }
-                            homeArrayList.add(new Home(type,address,age2));
-                            break;
-                        default:
-                            for (int j = 0; j < bookProps.getLength(); j++) {
-                                Node bookProp = bookProps.item(j);
-                                // Если нода не текст, то это один из параметров данных - печатаем
-                                if (bookProp.getNodeType() != Node.TEXT_NODE) {
-                                    System.out.println(bookProp.getNodeName() + ":" + bookProp.getChildNodes().item(0).getTextContent());
-                                }
-                            }
-                            break;
-                    }
-                    count++;
-                }
-            }
-
-        } catch (ParserConfigurationException | IOException | SAXException ex) {
-            ex.printStackTrace(System.out);
-        }
-    }
-
-    //определение расширения файла
-    public Optional<String> getExtensionByStringHandling(String filename) {
-        return Optional.ofNullable(filename)
-                .filter(f -> f.contains("."))
-                .map(f -> f.substring(filename.lastIndexOf(".") + 1));
-    }
 }
+
+
+//
+//
+//    //нехороший вариант
+//    private void ParseJson(String fileWay) throws FileNotFoundException {
+//        FileReader fr = new FileReader(fileWay);
+//        Scanner scan = new Scanner(fr);
+//        String jsonString = "";
+//        while (scan.hasNextLine()) {
+//            jsonString = jsonString + (scan.nextLine());
+//        }
+//        //fr.close();
+//        Gson d = new Gson();
+//        if (jsonString.contains("surname")){
+//            Human human = d.fromJson(jsonString, Human.class);
+//            humanArrayList.add(human);
+//        }
+//        if (jsonString.contains("address")) {
+//            Home home = d.fromJson(jsonString, Home.class);
+//            homeArrayList.add(home);
+//        }
+//        if (jsonString.contains("typePet")) {
+//            Pet pet = d.fromJson(jsonString, Pet.class);
+//            petArrayList.add(pet);
+//        }
+//    }
+//
+//    //заменить на private при потере необход
+//    public void ParserXml(String wayfile) {
+//        try {
+//            int count = 0;
+//            // Создается построитель документа
+//            DocumentBuilder documentBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+//            // Создается дерево DOM документа из файла
+//            Document document = documentBuilder.parse(wayfile);
+//
+//            // Получаем корневой элемент
+//            Node root = document.getDocumentElement();
+//
+//            //System.out.println("List of books:");
+//            //System.out.println();
+//            // Просматриваем все подэлементы корневого - т.е. непоред данные
+//            NodeList books = root.getChildNodes();
+//            for (int i = 0; i < books.getLength(); i++) {
+//                Node book = books.item(i);
+//                // Если нода не текст, то это данные - заходим внутрь
+//                if (book.getNodeType() != Node.TEXT_NODE) {
+//                    NodeList bookProps = book.getChildNodes();
+//                    String str = book.getNodeName();
+//                    switch (str) {
+//                        case "human":
+//                            String name = "";
+//                            String secondName = "";
+//                            String surname ="";
+//                            int age = 0;
+//                            for (int j = 0; j < bookProps.getLength(); j++) {
+//                                Node bookProp = bookProps.item(j);
+//                                // Если нода не текст, то это один из параметров данных - заполняем
+//                                if (bookProp.getNodeType() != Node.TEXT_NODE) {
+//                                    switch (bookProp.getNodeName()){
+//                                        case "name":
+//                                            name = bookProp.getChildNodes().item(0).getTextContent();
+//                                            break;
+//                                        case "surname":
+//                                            surname = bookProp.getChildNodes().item(0).getTextContent();
+//                                            break;
+//                                        case "secondName":
+//                                            secondName = bookProp.getChildNodes().item(0).getTextContent();
+//                                            break;
+//                                        case "age":
+//                                            age = Integer.parseInt(bookProp.getChildNodes().item(0).getTextContent());
+//                                            break;
+//                                        default:
+//                                            System.out.println(bookProp.getNodeName() + ":" + bookProp.getChildNodes().item(0).getTextContent());
+//                                    }
+//
+//                                }
+//                            }
+//                            humanArrayList.add(new Human(name,secondName,surname,age));
+//                            break;
+//                        case "pet":
+//                            String name1 = "";
+//                            String typePet = "";
+//                            int age1 = 0;
+//                            for (int j = 0; j < bookProps.getLength(); j++) {
+//                                Node bookProp = bookProps.item(j);
+//                                // Если нода не текст, то это один из параметров данных - заполняем
+//                                if (bookProp.getNodeType() != Node.TEXT_NODE) {
+//                                    switch (bookProp.getNodeName()){
+//                                        case "name":
+//                                            name1 = bookProp.getChildNodes().item(0).getTextContent();
+//                                            break;
+//                                        case "typePet":
+//                                            typePet = bookProp.getChildNodes().item(0).getTextContent();
+//                                            break;
+//                                        case "age":
+//                                            age1 = Integer.parseInt(bookProp.getChildNodes().item(0).getTextContent());
+//                                            break;
+//                                        default:
+//                                            System.out.println(bookProp.getNodeName() + ":" + bookProp.getChildNodes().item(0).getTextContent());
+//                                    }
+//
+//                                }
+//                            }
+//                            petArrayList.add(new Pet(name1,typePet,age1));
+//                            break;
+//                        case "home":
+//                            String address = "";
+//                            String type = "";
+//                            int age2 = 0;
+//                            for (int j = 0; j < bookProps.getLength(); j++) {
+//                                Node bookProp = bookProps.item(j);
+//                                // Если нода не текст, то это один из параметров данных - заполняем
+//                                if (bookProp.getNodeType() != Node.TEXT_NODE) {
+//                                    switch (bookProp.getNodeName()){
+//                                        case "address":
+//                                            address = bookProp.getChildNodes().item(0).getTextContent();
+//                                            break;
+//                                        case "type":
+//                                            type = bookProp.getChildNodes().item(0).getTextContent();
+//                                            break;
+//                                        case "age":
+//                                            age2 = Integer.parseInt(bookProp.getChildNodes().item(0).getTextContent());
+//                                            break;
+//                                        default:
+//                                            System.out.println(bookProp.getNodeName() + ":" + bookProp.getChildNodes().item(0).getTextContent());
+//                                    }
+//
+//                                }
+//                            }
+//                            homeArrayList.add(new Home(type,address,age2));
+//                            break;
+//                        default:
+//                            for (int j = 0; j < bookProps.getLength(); j++) {
+//                                Node bookProp = bookProps.item(j);
+//                                // Если нода не текст, то это один из параметров данных - печатаем
+//                                if (bookProp.getNodeType() != Node.TEXT_NODE) {
+//                                    System.out.println(bookProp.getNodeName() + ":" + bookProp.getChildNodes().item(0).getTextContent());
+//                                }
+//                            }
+//                            break;
+//                    }
+//                    count++;
+//                }
+//            }
+//
+//        } catch (ParserConfigurationException | IOException | SAXException ex) {
+//            ex.printStackTrace(System.out);
+//        }
+//    }
+//
+//    //определение расширения файла
+//    public Optional<String> getExtensionByStringHandling(String filename) {
+//        return Optional.ofNullable(filename)
+//                .filter(f -> f.contains("."))
+//                .map(f -> f.substring(filename.lastIndexOf(".") + 1));
+//    }
